@@ -1,0 +1,129 @@
+digraph G {
+  rankdir=TB; nodesep=0.45; ranksep=0.75; newrank=true; compound=true;
+  node [shape=plaintext, fontname="Helvetica", fontsize=10.5];
+  edge [fontname="Helvetica", fontsize=9.5, color="#2F3E4E"];
+
+  subgraph cluster_pres { label="Capa de presentación (paquetes controller, dto)"; style="rounded,dashed"; color="#5B7DB1"; fontname="Helvetica-Bold"; fontsize=12;
+  Ctrl [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#DCE7F3">«RestController»<br/><b>PrestamoController</b></td></tr>
+   <tr><td align="left">- prestamoService: PrestamoService</td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ registrar(request: PrestamoRequest): ResponseEntity&lt;PrestamoResponse&gt;</td></tr>
+   <tr><td align="left">+ listar(): ResponseEntity&lt;List&lt;PrestamoResponse&gt;&gt;</td></tr></table>>];
+  Req [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#E8F1E4">«DTO» «record»<br/><b>PrestamoRequest</b></td></tr>
+   <tr><td align="left">+ estudianteId: Long {not null}</td></tr>
+   <tr><td align="left">+ libroId: Long {not null}</td></tr></table>>];
+  Resp [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#E8F1E4">«DTO» «record»<br/><b>PrestamoResponse</b></td></tr>
+   <tr><td align="left">+ id: Long</td></tr><tr><td align="left">+ estudianteId: Long</td></tr>
+   <tr><td align="left">+ nombreEstudiante: String</td></tr><tr><td align="left">+ libroId: Long</td></tr>
+   <tr><td align="left">+ tituloLibro: String</td></tr><tr><td align="left">+ fechaPrestamo: LocalDate</td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left"><u>+ desde(p: Prestamo): PrestamoResponse</u></td></tr></table>>];
+  Handler [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#DCE7F3">«RestControllerAdvice»<br/><b>GlobalExceptionHandler</b></td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ noEncontrado(ex: RecursoNoEncontradoException): ProblemDetail  [404]</td></tr>
+   <tr><td align="left">+ noDisponible(ex: LibroNoDisponibleException): ProblemDetail  [409]</td></tr>
+   <tr><td align="left">+ invalida(ex: MethodArgumentNotValidException): ProblemDetail  [400]</td></tr></table>>];
+  }
+
+  subgraph cluster_neg { label="Capa de negocio (paquete service)"; style="rounded,dashed"; color="#5B7DB1"; fontname="Helvetica-Bold"; fontsize=12;
+  Svc [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#DCE7F3">«Service»<br/><b>PrestamoService</b></td></tr>
+   <tr><td align="left">- estudianteRepository: EstudianteRepository</td></tr>
+   <tr><td align="left">- libroRepository: LibroRepository</td></tr>
+   <tr><td align="left">- prestamoRepository: PrestamoRepository</td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ registrarPrestamo(estudianteId: Long, libroId: Long): Prestamo {transaccional}</td></tr>
+   <tr><td align="left">+ listarPrestamos(): List&lt;Prestamo&gt; {transaccional, solo lectura}</td></tr></table>>];
+  Ex1 [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#F6E3E3">«exception»<br/><b>RecursoNoEncontradoException</b></td></tr>
+   <tr><td align="left">extiende RuntimeException</td></tr></table>>];
+  Ex2 [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#F6E3E3">«exception»<br/><b>LibroNoDisponibleException</b></td></tr>
+   <tr><td align="left">extiende RuntimeException</td></tr></table>>];
+  }
+
+  subgraph cluster_datos { label="Capa de acceso a datos (paquete repository)"; style="rounded,dashed"; color="#5B7DB1"; fontname="Helvetica-Bold"; fontsize=12;
+  ERepo [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#FFF1D6">«interface»<br/><b>EstudianteRepository</b></td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ findById(id: Long): Optional&lt;Estudiante&gt;</td></tr></table>>];
+  LRepo [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#FFF1D6">«interface»<br/><b>LibroRepository</b></td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ findById(id: Long): Optional&lt;Libro&gt;</td></tr>
+   <tr><td align="left">+ save(libro: Libro): Libro</td></tr></table>>];
+  PRepo [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#FFF1D6">«interface»<br/><b>PrestamoRepository</b></td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ save(p: Prestamo): Prestamo</td></tr>
+   <tr><td align="left">+ findAll(): List&lt;Prestamo&gt;</td></tr></table>>];
+  Jpa [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#EEEEEE">«interface» (Spring Data)<br/><b>JpaRepository&lt;T, ID&gt;</b></td></tr>
+   <tr><td align="left">+ findById(id: ID): Optional&lt;T&gt;</td></tr>
+   <tr><td align="left">+ findAll(): List&lt;T&gt;</td></tr>
+   <tr><td align="left">+ save(entidad: T): T</td></tr></table>>];
+  }
+
+  subgraph cluster_dom { label="Modelo de dominio (paquete model) — usado por las capas, no es una cuarta capa"; style="rounded"; color="#888888"; fontname="Helvetica-Bold"; fontsize=12;
+  Est [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#E4E4F5">«Entity»<br/><b>Estudiante</b></td></tr>
+   <tr><td align="left">- id: Long</td></tr><tr><td align="left">- nombre: String</td></tr><tr><td align="left">- correo: String</td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ getId(): Long</td></tr><tr><td align="left">+ getNombre(): String</td></tr><tr><td align="left">+ getCorreo(): String</td></tr></table>>];
+  Lib [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#E4E4F5">«Entity»<br/><b>Libro</b></td></tr>
+   <tr><td align="left">- id: Long</td></tr><tr><td align="left">- titulo: String</td></tr><tr><td align="left">- disponible: boolean</td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ getId(): Long</td></tr><tr><td align="left">+ getTitulo(): String</td></tr>
+   <tr><td align="left">+ isDisponible(): boolean</td></tr>
+   <tr><td align="left">+ marcarPrestado(): void</td></tr></table>>];
+  Pre [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#E4E4F5">«Entity»<br/><b>Prestamo</b></td></tr>
+   <tr><td align="left">- id: Long</td></tr><tr><td align="left">- fechaPrestamo: LocalDate</td></tr>
+   <tr><td align="left">- fechaDevolucion: LocalDate [0..1]</td></tr>
+   <tr><td bgcolor="#EEF2F6"></td></tr>
+   <tr><td align="left">+ Prestamo(estudiante: Estudiante, libro: Libro, fecha: LocalDate)</td></tr>
+   <tr><td align="left">+ estaActivo(): boolean</td></tr>
+   <tr><td align="left">+ getId(): Long / getFechaPrestamo(): LocalDate</td></tr>
+   <tr><td align="left">+ getEstudiante(): Estudiante / getLibro(): Libro</td></tr></table>>];
+  }
+
+  // Asociaciones dirigidas (referencia mantenida por inyección)
+  Ctrl -> Svc [arrowhead=vee, headlabel="1", label=" -prestamoService", labeldistance=1.6];
+  Svc -> ERepo [arrowhead=vee, headlabel="1", labeldistance=1.6];
+  Svc -> LRepo [arrowhead=vee, headlabel="1", labeldistance=1.6];
+  Svc -> PRepo [arrowhead=vee, headlabel="1", labeldistance=1.6];
+
+  // Dependencias (uso puntual)
+  Ctrl -> Req [style=dashed, arrowhead=vee, label="«use»"];
+  Ctrl -> Resp [style=dashed, arrowhead=vee, label="«create»"];
+  Resp -> Pre [style=dashed, arrowhead=vee, label="«use»", constraint=false];
+  Svc -> Pre [style=dashed, arrowhead=vee, label="«create»"];
+  Ex2 -> Ex1 [style=invis];
+  Svc -> Ex1 [style=dashed, arrowhead=vee, xlabel="«throw»", constraint=false];
+  Svc -> Ex2 [style=dashed, arrowhead=vee, label="«throw»"];
+  Handler -> Ex1 [style=dashed, arrowhead=vee, label="«handle»", constraint=false];
+  Handler -> Ex2 [style=dashed, arrowhead=vee, label="«handle»", constraint=false];
+
+  // Generalización entre interfaces (binding de parámetros)
+  ERepo -> Jpa [arrowhead=onormal, label="T→Estudiante\nID→Long"];
+  LRepo -> Jpa [arrowhead=onormal, label="T→Libro\nID→Long"];
+  PRepo -> Jpa [arrowhead=onormal, label="T→Prestamo\nID→Long"];
+
+  // Asociaciones del dominio (navegables desde Prestamo)
+  Pre -> Est [arrowhead=vee, taillabel="0..*", headlabel="1\n+estudiante", labeldistance=2.2];
+  Pre -> Lib [arrowhead=vee, taillabel="0..*", headlabel="1\n+libro", labeldistance=2.2];
+
+  R5 [shape=note, style=filled, fillcolor="#FFF4C2", color="#B08900", fontsize=9.5, fontname="Helvetica",
+      label="{R5} Un Libro tiene 0..* préstamos históricos,\npero como máximo 1 con fechaDevolucion = null.\nSe garantiza con disponible + transacción."];
+  R5 -> Lib [constraint=false, style=dashed, arrowhead=none, color="#B08900"];
+
+  {rank=same; Est; Lib; R5;} Lib -> R5 [style=invis]; 
+  {rank=same; Req -> Ctrl -> Resp -> Handler [style=invis];}
+  {rank=same; Svc -> Ex2 -> Ex1 [style=invis];}
+  {rank=same; ERepo; LRepo; PRepo;}
+}

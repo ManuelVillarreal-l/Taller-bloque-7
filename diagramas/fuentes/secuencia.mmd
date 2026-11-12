@@ -1,0 +1,41 @@
+sequenceDiagram
+    autonumber
+    actor U as Usuario (cliente HTTP)
+    participant C as PrestamoController
+    participant H as GlobalExceptionHandler
+    participant S as PrestamoService
+    participant ER as EstudianteRepository
+    participant LR as LibroRepository
+    participant L as libro: Libro
+    participant PR as PrestamoRepository
+
+    U->>C: POST /api/prestamos {estudianteId, libroId}
+    Note over C,H: @Valid PrestamoRequest (si falta un id → 400)
+    C->>S: registrarPrestamo(estudianteId, libroId)
+    Note over S,ER: Inicia transacción (@Transactional)
+    S->>ER: findById(estudianteId)
+    ER-->>S: Optional<Estudiante> (vacío → RecursoNoEncontradoException → 404)
+    S->>LR: findById(libroId)
+    LR-->>S: Optional<Libro> (vacío → RecursoNoEncontradoException → 404)
+    S->>L: isDisponible()
+    L-->>S: boolean
+    alt Camino 1 – libro disponible (R1)
+        S->>L: marcarPrestado()
+        Note right of L: disponible = false (R3)
+        create participant P as prestamo: Prestamo
+        S->>P: «create» Prestamo(estudiante, libro, LocalDate.now())
+        S->>LR: save(libro)
+        LR-->>S: Libro
+        S->>PR: save(prestamo)
+        PR-->>S: Prestamo (con id generado) (R2)
+        Note over S,ER: commit de la transacción
+        S-->>C: Prestamo
+        C->>C: PrestamoResponse.desde(prestamo)
+        C-->>U: 201 Created + Location: /api/prestamos/{id} + JSON
+    else Camino 2 – libro no disponible
+        S-->>C: throw LibroNoDisponibleException
+        Note over S,ER: rollback: no se crea préstamo (R4, R5)
+        C->>H: excepción propagada
+        H->>H: noDisponible(ex)
+        H-->>U: 409 Conflict + ProblemDetail
+    end

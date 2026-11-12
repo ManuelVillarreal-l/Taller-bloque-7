@@ -1,0 +1,60 @@
+digraph G {
+  rankdir=LR; nodesep=0.5; ranksep=1.0; bgcolor="white";
+  node [shape=plaintext, fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10, color="#2F3E4E", arrowhead=none];
+
+  Gestor [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="white">
+   <tr><td bgcolor="#DCE7F3"><b>GestorPrestamos</b></td></tr>
+   <tr><td align="left">- estudiantes: List&lt;Estudiante&gt;</td></tr>
+   <tr><td align="left">- libros: List&lt;Libro&gt;</td></tr>
+   <tr><td align="left">- prestamos: List&lt;Prestamo&gt;</td></tr>
+   <tr><td bgcolor="#EEF2F6"><i>Operaciones</i></td></tr>
+   <tr><td align="left">+ GestorPrestamos()</td></tr>
+   <tr><td align="left">+ registrarPrestamo(e: Estudiante, l: Libro): Prestamo</td></tr>
+   <tr><td align="left">+ get/set Estudiantes, Libros, Prestamos</td></tr></table>>];
+
+  Estudiante [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#DCE7F3"><b>Estudiante</b></td></tr>
+   <tr><td align="left">- id: Long</td></tr><tr><td align="left">- nombre: String</td></tr><tr><td align="left">- correo: String</td></tr>
+   <tr><td bgcolor="#EEF2F6"><i>Operaciones</i></td></tr>
+   <tr><td align="left">+ Estudiante(id, nombre, correo)</td></tr>
+   <tr><td align="left">+ get/set id, nombre, correo</td></tr></table>>];
+
+  Libro [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#DCE7F3"><b>Libro</b></td></tr>
+   <tr><td align="left">- id: Long</td></tr><tr><td align="left">- titulo: String</td></tr><tr><td align="left">- disponible: boolean</td></tr>
+   <tr><td bgcolor="#EEF2F6"><i>Operaciones</i></td></tr>
+   <tr><td align="left">+ Libro(id, titulo, disponible)</td></tr>
+   <tr><td align="left">+ get/set id, titulo</td></tr>
+   <tr><td align="left">+ isDisponible(): boolean</td></tr>
+   <tr><td align="left">+ setDisponible(valor): void</td></tr>
+   <tr><td align="left">+ marcarPrestado(): void</td></tr></table>>];
+
+  Prestamo [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="3">
+   <tr><td bgcolor="#DCE7F3"><b>Prestamo</b></td></tr>
+   <tr><td align="left">- id: Long</td></tr><tr><td align="left">- fechaPrestamo: LocalDate</td></tr>
+   <tr><td align="left">- fechaDevolucion: LocalDate [0..1]</td></tr>
+   <tr><td align="left">- estudiante: Estudiante</td></tr><tr><td align="left">- libro: Libro</td></tr>
+   <tr><td bgcolor="#EEF2F6"><i>Operaciones</i></td></tr>
+   <tr><td align="left">+ Prestamo(id, fecha, estudiante, libro)</td></tr>
+   <tr><td align="left">+ get/set id, fechaPrestamo, fechaDevolucion</td></tr>
+   <tr><td align="left">+ get/set estudiante, libro</td></tr></table>>];
+
+  Gestor -> Estudiante [label="registra", taillabel="1", headlabel="0..*"];
+  Gestor -> Libro [label="administra", taillabel="1", headlabel="0..*"];
+  Gestor -> Prestamo [label="gestiona", taillabel="1", headlabel="0..*"];
+  Estudiante -> Prestamo [label="historial", taillabel="1", headlabel="0..*"];
+  Libro -> Prestamo [label="historial", taillabel="1", headlabel="0..*"];
+
+  node [shape=note, style=filled, fillcolor="#FFF4C2", color="#B08900", fontsize=10, fontname="Helvetica"];
+  edge [style=dashed, color="#B08900", arrowhead=none];
+  O1 [label="O1. Baja cohesión: mezcla almacenamiento\n(listas en memoria = rol de Repository)\ny coordinación del caso de uso (rol de Service).\nSe divide en PrestamoService + 3 Repositories."];
+  O2 [label="O2. registrarPrestamo recibe objetos,\npero HTTP envía identificadores:\nfalta buscar por id y responder 404."];
+  O3 [label="O3. Ninguna clase recibe HTTP ni produce\ncódigos 201/404/409: falta un Controller\ny un manejador de excepciones."];
+  O4 [label="O4. Experto en información: Libro conoce\nsu disponibilidad (R1, R3). marcarPrestado()\ndebe rechazar un libro ya prestado.\nsetDisponible() público permite saltarse la regla."];
+  O5 [label="O5. Prestamo guarda las referencias:\nla navegabilidad real es Prestamo → Estudiante\ny Prestamo → Libro (líneas sin flecha en el inicial).\nfechaDevolucion = null ⇒ préstamo activo (R5)."];
+  O6 [label="O6. Constructores con id: el id lo genera\nla persistencia. Setters de estudiante/libro\npermiten préstamos inconsistentes (R2)."];
+  O7 [label="O7. Asociación, no composición: si se borra\nun préstamo, el libro y el estudiante siguen\nexistiendo (ciclos de vida independientes)."];
+  O1 -> Gestor; O2 -> Gestor; O3 -> Gestor; O4 -> Libro; O5 -> Prestamo; O6 -> Prestamo; O7 -> Estudiante;
+  {rank=same; O1; O2; O3;}
+}
