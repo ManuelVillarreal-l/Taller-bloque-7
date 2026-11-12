@@ -3,12 +3,6 @@
 **Del modelo de clases orientado a objetos a un diseño por tres capas para una API REST**
 Diseño de Software · Cuarto semestre
 
-| | |
-|---|---|
-| Integrante 1 | _______________________ |
-| Integrante 2 | _______________________ |
-| Profesor | _______________________ |
-
 Caso de uso trabajado: **«Registrar préstamo»** (`POST /api/prestamos`) y consulta de préstamos (`GET /api/prestamos`).
 
 ---
